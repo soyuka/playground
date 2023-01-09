@@ -1,0 +1,105 @@
+.row{display:flex}.col{flex:1}@media(max-width:48em){.row{flex-direction:column}.col{flex:0 0 auto}}
+@media(min-width:48em){.col-tenth{flex:0 0 10%}.col-fifth{flex:0 0 20%}.col-quarter{flex:0 0 25%}.col-third{flex:0 0 33.3333334%}.col-half{flex:0 0 50%}}
+
+body { max-width: unset; padding: 1rem; }
+header { padding: 1.75rem 1.5rem 0.75rem; margin-bottom: 10px; }
+header h1 { margin: 0; padding-top: 0; }
+iframe { border: 1px solid var(--nc-tx-2); padding-bottom: 1px; margin-bottom: 0; }
+
+#file-list-container {flex: 0 0 210px; border: 1px solid var(--nc-tx-2); border-right: unset;padding: 10px;}
+.hide {display: none;}
+
+#toggle-story {
+  margin: 10px;
+}
+#story {
+  text-align: right;
+  position: fixed;
+  bottom: 0;
+  background-color: var(--nc-bg-2);
+  width: 100%;
+  max-height: 40%;
+  border-top: 1px solid var(--nc-tx-2);
+  overflow: auto;
+  left: 0;
+}
+
+#story-inner {
+  padding: 1rem;
+  padding-top: 0;
+  text-align: justify;
+}
+
+button.secondary {
+
+  background-color: var(--nc-bg-3);
+  color: var(--nc-tx-2);
+}
+
+.vtree {
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.vtree ul.vtree-subtree, .vtree li.vtree-leaf {
+	margin: 0;
+	padding: 0;
+	list-style-type: none;
+	position: relative;
+}
+
+.vtree li.vtree-leaf {
+	min-height: 18px;
+	line-height: 18px;
+}
+
+.vtree li.vtree-leaf::before {
+	content: '▾ ';
+	width: 18px;
+	height: 18px;
+	position: absolute;
+	/* background-position: -36px 0; */
+}
+
+.vtree li.vtree-leaf.closed::before {
+	content: '▸ ';
+}
+
+.vtree li.vtree-leaf[data-vtree-id^="file-"]::before {
+  content: '';
+}
+
+.vtree li.vtree-leaf li.vtree-leaf {
+	margin-left: 18px;
+}
+
+.vtree li.vtree-leaf.closed ul.vtree-subtree {	
+	display: none;
+}
+
+.vtree li.vtree-leaf.vtree-has-children > span.vtree-toggle {
+	display: block;
+	width: 18px;
+	height: 18px;
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.vtree li.vtree-leaf.vtree-has-children.closed > span.vtree-toggle {
+}
+
+.vtree a.vtree-leaf-label {
+	line-height: 18px;
+	display: inline-block;
+	vertical-align: top;
+	cursor: pointer;
+	max-width: 100%;
+	margin-left: 18px;
+	padding: 0 2px;
+}
+
+.vtree-leaf:not([data-vtree-id^="file-"]) > a.vtree-leaf-label {
+  color: var(--nc-tx-2);
+}

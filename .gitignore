@@ -1,0 +1,7 @@
+public/php-web.js
+public/php-web.data
+public/php-web.wasm
+php-wasm.build
+php-wasm/
+node_modules
+public/monaco-edito
