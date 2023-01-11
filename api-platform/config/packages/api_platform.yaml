@@ -1,9 +1,10 @@
 api_platform:
-#  formats:
-#    jsonld: [ 'application/ld+json' ]
+  formats:
+    jsonld: [ 'application/ld+json' ]
+    json: ['application/json']
 
-  # mapping:
-  #   paths:
-  #     - '%kernel.project_dir%/src'
+#  mapping:
+#    paths:
+#      - '%kernel.project_dir%/src'
   doctrine:
     enabled: true

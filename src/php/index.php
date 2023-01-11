@@ -1,7 +1,5 @@
 <?php
 
-use Symfony\Component\HttpFoundation\Request;
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -26,5 +24,7 @@ function run(string $guide) {
         ->resolve();
 
     $app = $app(...$args);
+
+    $app->executeMigration();
     $app->request();
 }
