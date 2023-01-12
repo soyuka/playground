@@ -84,3 +84,23 @@ namespace DoctrineMigrations {
         }
     }
 }
+
+namespace App\Fixtures {
+    use App\ApiResource\Book;
+    use Zenstruck\Foundry\AnonymousFactory;
+    use function Zenstruck\Foundry\faker;
+
+    final class BookFixtures
+    {
+        public function __invoke(): void
+        {
+            $factory = AnonymousFactory::new(Book::class);
+            $factory->many(20)->create(static function (int $i): array {
+                return [
+                    'name' => faker()->name,
+                    'isbn' => faker()->isbn10()
+                ];
+            });
+        }
+    }
+}

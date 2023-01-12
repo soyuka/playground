@@ -9,6 +9,7 @@ chdir('/src/api-platform');
 require './vendor/autoload.php';
 
 use App\Kernel;
+use Symfony\Component\HttpFoundation\Request;
 
 function run(string $guide) {
     require "/src/api-platform/src/$guide.php";
@@ -26,5 +27,6 @@ function run(string $guide) {
     $app = $app(...$args);
 
     $app->executeMigration();
-    $app->request();
+    $app->loadFixtures();
+    $app->request(Request::create('/books.jsonld'));
 }

@@ -21,6 +21,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
+use Zenstruck\Foundry\Proxy;
 use function App\DependencyInjection\configure;
 use function App\Playground\request;
 
@@ -126,6 +127,21 @@ class Kernel extends BaseKernel
         $migratorConfiguration = $migratorConfigurationFactory->getMigratorConfiguration(new ArrayInput([]));
 
         $migrator->migrate($plan, $migratorConfiguration);
+    }
+
+    public function loadFixtures(): void
+    {
+        $fixtureClasses = array_filter(get_declared_classes(), static function (string $class): string {
+            return str_starts_with($class, 'App\Fixtures');
+        });
+        if (!$fixtureClasses) {
+            return;
+        }
+        foreach ($fixtureClasses as $class) {
+            if (is_callable($inst = new $class())) {
+                $inst();
+            }
+        }
     }
 
     private function createMetadataStorageTable(): void
