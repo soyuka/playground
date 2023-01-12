@@ -12,7 +12,6 @@ use Doctrine\Migrations\Metadata\Storage\TableMetadataStorageConfiguration;
 use Doctrine\Migrations\Version\Direction;
 use Doctrine\Migrations\Version\Version;
 use Doctrine\ORM\EntityManagerInterface;
-use DoctrineMigrations\Migration;
 use ReflectionClass;
 use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
 use Symfony\Component\Config\Loader\LoaderInterface;
@@ -21,7 +20,6 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Kernel as BaseKernel;
-use Zenstruck\Foundry\Proxy;
 use function App\DependencyInjection\configure;
 use function App\Playground\request;
 
@@ -97,36 +95,46 @@ class Kernel extends BaseKernel
         return $this->getProjectDir() . '/var/databases/' . $this->guide;
     }
 
-    public function executeMigration(string $direction = Direction::UP): void
+    public function executeMigrations(string $direction = Direction::UP): void
     {
-        if (!class_exists(\DoctrineMigrations\Migration::class)) {
+        $migrationClasses = array_filter(get_declared_classes(), static function (string $class): string {
+            return str_starts_with($class, 'DoctrineMigrations');
+        });
+
+        if (!$migrationClasses) {
             return;
         }
         $this->boot();
         @mkdir('var/databases/' . $this->guide, recursive: true);
-        $this->createMetadataStorageTable();
 
-        $conf = new Configuration();
-        $conf->addMigrationClass(Migration::class);
-        $conf->setTransactional(true);
-        $conf->setCheckDatabasePlatform(true);
-        $meta = new TableMetadataStorageConfiguration();
-        $meta->setTableName('doctrine_migration_versions');
-        $conf->setMetadataStorageConfiguration($meta);
+        foreach ($migrationClasses as $migrationClass) {
+            if ("Doctrine\Migrations\AbstractMigration" !== (new ReflectionClass($migrationClass))->getParentClass()->getName()) {
+                continue;
+            }
+            $conf = new Configuration();
+            $conf->addMigrationClass($migrationClass);
+            $conf->setTransactional(true);
+            $conf->setCheckDatabasePlatform(true);
+            $meta = new TableMetadataStorageConfiguration();
+            $meta->setTableName('doctrine_migration_versions');
+            $conf->setMetadataStorageConfiguration($meta);
 
-        $confLoader = new ExistingConfiguration($conf);
-        /** @var EntityManagerInterface $em */
-        $em = $this->getContainer()->get('doctrine.orm.entity_manager');
-        $loader = new ExistingEntityManager($em);
-        $dependencyFactory = DependencyFactory::fromEntityManager($confLoader, $loader);
+            $confLoader = new ExistingConfiguration($conf);
+            /** @var EntityManagerInterface $em */
+            $em = $this->getContainer()->get('doctrine.orm.entity_manager');
+            $loader = new ExistingEntityManager($em);
+            $dependencyFactory = DependencyFactory::fromEntityManager($confLoader, $loader);
 
-        $planCalculator = $dependencyFactory->getMigrationPlanCalculator();
-        $plan = $planCalculator->getPlanForVersions([new Version(Migration::class)], $direction);
-        $migrator = $dependencyFactory->getMigrator();
-        $migratorConfigurationFactory = $dependencyFactory->getConsoleInputMigratorConfigurationFactory();
-        $migratorConfiguration = $migratorConfigurationFactory->getMigratorConfiguration(new ArrayInput([]));
+            $dependencyFactory->getMetadataStorage()->ensureInitialized();
 
-        $migrator->migrate($plan, $migratorConfiguration);
+            $planCalculator = $dependencyFactory->getMigrationPlanCalculator();
+            $plan = $planCalculator->getPlanForVersions([new Version($migrationClass)], $direction);
+            $migrator = $dependencyFactory->getMigrator();
+            $migratorConfigurationFactory = $dependencyFactory->getConsoleInputMigratorConfigurationFactory();
+            $migratorConfiguration = $migratorConfigurationFactory->getMigratorConfiguration(new ArrayInput([]));
+
+            $migrator->migrate($plan, $migratorConfiguration);
+        }
     }
 
     public function loadFixtures(): void
@@ -137,30 +145,13 @@ class Kernel extends BaseKernel
         if (!$fixtureClasses) {
             return;
         }
-        foreach ($fixtureClasses as $class) {
-            if (is_callable($inst = new $class())) {
-                $inst();
-            }
-        }
-    }
-
-    private function createMetadataStorageTable(): void
-    {
-        /** @var EntityManagerInterface $em */
         $em = $this->getContainer()->get('doctrine.orm.entity_manager');
-        $connection = $em->getConnection();
-
-        $tables = $connection->createSchemaManager()->listTableNames();
-
-        if (in_array('doctrine_migration_versions', $tables, true)) {
-            return;
+        foreach ($fixtureClasses as $class) {
+            if ("Doctrine\Bundle\FixturesBundle\Fixture" !== ((new ReflectionClass($class))->getParentClass()->getName())) {
+                continue;
+            }
+            (new $class())->load($em);
         }
-
-        $createTable = 'CREATE TABLE doctrine_migration_versions(version VARCHAR(191) PRIMARY KEY NOT NULL, executed_at DATETIME DEFAULT NULL, execution_time INT DEFAULT NULL)';
-        $connection->executeStatement($createTable);
-        $createIndex = 'CREATE UNIQUE INDEX `primary` ON doctrine_migration_versions(version)';
-        $connection->executeStatement($createIndex);
-
     }
 }
 

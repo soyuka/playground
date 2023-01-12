@@ -51,7 +51,7 @@ namespace App\Playground {
 
     function setup(Kernel $kernel): void
     {
-        $kernel->executeMigration();
+        $kernel->executeMigrations();
     }
 }
 
@@ -60,39 +60,26 @@ namespace DoctrineMigrations {
     use Doctrine\DBAL\Schema\Schema;
     use Doctrine\Migrations\AbstractMigration;
 
-    /**
-     * Auto-generated Migration: Please modify to your needs!
-     */
     final class Migration extends AbstractMigration
     {
-        public function getDescription(): string
-        {
-            return '';
-        }
-
         public function up(Schema $schema): void
         {
-            // this up() migration is auto-generated, please modify it to your needs
             $this->addSql('CREATE TABLE book (id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, name VARCHAR(255) NOT NULL, isbn VARCHAR(255) NOT NULL)');
             $this->addSql('CREATE UNIQUE INDEX UNIQ_CBE5A331CC1CF4E6 ON book (isbn)');
-        }
-
-        public function down(Schema $schema): void
-        {
-            // this down() migration is auto-generated, please modify it to your needs
-            $this->addSql('DROP TABLE book');
         }
     }
 }
 
 namespace App\Fixtures {
     use App\ApiResource\Book;
+    use Doctrine\Bundle\FixturesBundle\Fixture;
+    use Doctrine\Persistence\ObjectManager;
     use Zenstruck\Foundry\AnonymousFactory;
     use function Zenstruck\Foundry\faker;
 
-    final class BookFixtures
+    final class BookFixtures extends Fixture
     {
-        public function __invoke(): void
+        public function load(ObjectManager $manager): void
         {
             $factory = AnonymousFactory::new(Book::class);
             $factory->many(20)->create(static function (int $i): array {

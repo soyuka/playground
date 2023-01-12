@@ -26,7 +26,7 @@ function run(string $guide) {
 
     $app = $app(...$args);
 
-    $app->executeMigration();
+    $app->executeMigrations();
     $app->loadFixtures();
-    $app->request(Request::create('/books.jsonld'));
+    $app->request();
 }
