@@ -1,7 +1,5 @@
 <?php
 
-use Symfony\Component\HttpFoundation\Request;
-
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -11,6 +9,7 @@ chdir('/src/api-platform');
 require './vendor/autoload.php';
 
 use App\Kernel;
+use Symfony\Component\HttpFoundation\Request;
 
 function run(string $guide) {
     require "/src/api-platform/src/$guide.php";
@@ -26,5 +25,8 @@ function run(string $guide) {
         ->resolve();
 
     $app = $app(...$args);
+
+    $app->executeMigrations();
+    $app->loadFixtures();
     $app->request();
 }
