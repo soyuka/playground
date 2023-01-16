@@ -15,7 +15,7 @@ function run(string $guide) {
     require "/src/api-platform/src/$guide.php";
 
     $app = function (array $context) use ($guide) {
-        return new Kernel($guide, $context['APP_ENV'], (bool) $context['APP_DEBUG']);
+        return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG'], $guide);
     };
 
     $runtime = $_SERVER['APP_RUNTIME'] ?? $_ENV['APP_RUNTIME'] ?? 'Symfony\\Component\\Runtime\\SymfonyRuntime';

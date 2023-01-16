@@ -51,8 +51,3 @@ namespace App\Configurator {
     };
 }
 
-// namespace App\Tests {
-//     class ApiTestCase extends ApiTestCase {
-//
-//     }
-// }

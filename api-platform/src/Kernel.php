@@ -27,8 +27,8 @@ class Kernel extends BaseKernel
 {
     use MicroKernelTrait;
 
-    public function __construct(private string $guide, string $environment, bool $debug) {
-        parent::__construct($environment, $debug);
+    public function __construct(string $environment, bool $debug, private string $guide = 'bla') {
+        parent::__construct($environment ?? 'test', $debug ?? true);
     }
 
     private function configureContainer(ContainerConfigurator $container, LoaderInterface $loader, ContainerBuilder $builder): void
@@ -97,9 +97,7 @@ class Kernel extends BaseKernel
 
     public function executeMigrations(string $direction = Direction::UP): void
     {
-        $migrationClasses = array_filter(get_declared_classes(), static function (string $class): string {
-            return str_starts_with($class, 'DoctrineMigrations');
-        });
+        $migrationClasses = $this->getDeclaredClassesForNamespace('DoctrineMigrations');
 
         if (!$migrationClasses) {
             return;
@@ -126,6 +124,11 @@ class Kernel extends BaseKernel
             $dependencyFactory = DependencyFactory::fromEntityManager($confLoader, $loader);
 
             $dependencyFactory->getMetadataStorage()->ensureInitialized();
+            $executed = $dependencyFactory->getMetadataStorage()->getExecutedMigrations();
+
+            if ($executed->hasMigration(new Version($migrationClass)) && Direction::DOWN !== $direction) {
+                continue;
+            }
 
             $planCalculator = $dependencyFactory->getMigrationPlanCalculator();
             $plan = $planCalculator->getPlanForVersions([new Version($migrationClass)], $direction);
@@ -139,9 +142,7 @@ class Kernel extends BaseKernel
 
     public function loadFixtures(): void
     {
-        $fixtureClasses = array_filter(get_declared_classes(), static function (string $class): string {
-            return str_starts_with($class, 'App\Fixtures');
-        });
+        $fixtureClasses = $this->getDeclaredClassesForNamespace('App\Fixtures');
         if (!$fixtureClasses) {
             return;
         }
@@ -152,6 +153,13 @@ class Kernel extends BaseKernel
             }
             (new $class())->load($em);
         }
+    }
+
+    private function getDeclaredClassesForNamespace(string $namespace): array
+    {
+        return array_filter(get_declared_classes(), static function (string $class) use ($namespace): bool {
+            return str_starts_with($class, $namespace);
+        });
     }
 }
 

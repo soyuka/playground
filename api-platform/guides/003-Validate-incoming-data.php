@@ -83,6 +83,37 @@ namespace App\Validator\Constraints {
     }
 }
 
+namespace App\Tests {
+
+    use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+    use PHPUnit\Framework\TestCase;
+    use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+
+    final class FooTest extends ApiTestCase {
+
+        public function testToto()
+        {
+            $this->assertTrue(true);
+        }
+    }
+
+    final class BarTest extends KernelTestCase {
+
+        public function testTiti()
+        {
+            $this->assertTrue(true);
+        }
+    }
+
+    final class BazTest extends TestCase
+    {
+        public function testTutu()
+        {
+            $this->assertTrue(true);
+        }
+    }
+}
+
 //If the data submitted by the client is invalid, the HTTP status code will be set to 422 Unprocessable Entity and the response's body will contain the list of violations serialized in a format compliant with the requested one. For instance, a validation error will look like the following if the requested format is JSON-LD (the default):
 // ```json
 // {

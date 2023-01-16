@@ -2,7 +2,7 @@
 
 // Should be a real guide
 
-namespace App\ApiResource {
+namespace App\Entity {
 
     use ApiPlatform\Metadata\ApiResource;
     use Doctrine\ORM\Mapping as ORM;
@@ -33,12 +33,8 @@ namespace App\ApiResource {
 }
 
 namespace App\Playground {
-
-    use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
-    use App\ApiResource\Book;
     use App\Kernel;
     use Symfony\Component\HttpFoundation\Request;
-    use Symfony\Component\HttpKernel\KernelInterface;
 
     function request(): Request
     {
@@ -52,6 +48,36 @@ namespace App\Playground {
     function setup(Kernel $kernel): void
     {
         $kernel->executeMigrations();
+    }
+}
+
+namespace App\Tests {
+    use ApiPlatform\Symfony\Bundle\Test\ApiTestCase;
+    use App\Entity\Book;
+    use App\Kernel;
+    use Symfony\Component\HttpKernel\KernelInterface;
+    use Zenstruck\Foundry\Test\ResetDatabase;
+
+    final class BookTest extends ApiTestCase
+    {
+        public function testPostBook(): void
+        {
+            $response = static::createClient()->request('POST', '/books', ['json' => [
+                'isbn' => '0099740915',
+                'name' => 'The Handmaid\'s Tale'
+            ]]);
+
+            $this->assertResponseStatusCodeSame(201);
+            $this->assertResponseHeaderSame('content-type', 'application/ld+json; charset=utf-8');
+            $this->assertJsonContains([
+                '@context' => '/contexts/Book',
+                '@type' => 'Book',
+                'isbn' => '0099740915',
+                'name' => 'The Handmaid\'s Tale'
+            ]);
+            $this->assertMatchesRegularExpression('~^/books/\d+$~', $response->toArray()['@id']);
+            $this->assertMatchesResourceItemJsonSchema(Book::class);
+        }
     }
 }
 
@@ -71,7 +97,7 @@ namespace DoctrineMigrations {
 }
 
 namespace App\Fixtures {
-    use App\ApiResource\Book;
+    use App\Entity\Book;
     use Doctrine\Bundle\FixturesBundle\Fixture;
     use Doctrine\Persistence\ObjectManager;
     use Zenstruck\Foundry\AnonymousFactory;
