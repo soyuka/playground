@@ -8,7 +8,6 @@
 // Let's add a [custom Constraint](https://symfony.com/doc/current/validation/custom_constraint.html).
 namespace App\Validator {
     use Symfony\Component\Validator\Constraint;
-    use Symfony\Component\Validator\ConstraintValidator;
 
     #[\Attribute]
     class AssertCanDelete extends Constraint
@@ -20,6 +19,9 @@ namespace App\Validator {
 
 // And a custom validator following Symfony's naming conventions.
 namespace App\Validator {
+    use Symfony\Component\Validator\ConstraintValidator;
+    use Symfony\Component\Validator\Constraint;
+
     class AssertCanDeleteValidator extends ConstraintValidator
     {
         public function validate(mixed $value, Constraint $constraint)
